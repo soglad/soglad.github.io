@@ -1,0 +1,22 @@
+7月26日Java Advanced Management Console(AMC) 2.4正式发布了，这个版本与2.3版相比有很大改动，实现了一些非常有用的新功能。加入O记后一直是在AMC 组做SQE，但还没有机会整理自己对AMC的认识，正好利用这次新版本发布后一点点时间总结一下。
+
+
+AMC是Oracle Java SE Advanced产品的一部分，是commercial feature，也就是花钱才可以买到的部分 ：）。它实现的功能主要是：1. 收集和展示组织内部Java的使用情况。2. 管理和控制组织内Rich Internet Application（RIA，包括Java applets, Java Web Start Applications,和浏览器内嵌JavaFX 应用等)的使用。3. 定制组织自己的JRE安装配置，并指定安装到组织内的终端机器上或在终端机器上进行卸载。
+
+AMC的安装和部署分成两部分，一为Server，一为Agent。Server是部署在Weblogic上的应用，它主要负责将收集到的Java使用数据展现给管理人员，帮助建立用于管理和控制RIA使用的Deployment Rule Set（DRS），定制和下发组织内JRE安装配置。Agent是分装在各个终端机器上的，目前只支持Windows和Mac OS，它可以帮Server收集终端机器上JRE的安装信息，由Server获取并执行DRS部署或JRE安装或卸载的命令。下面给出的是AMC的模块和安装顺序图示，对它的详细介绍和解释可以在AMC 2.4 Installation and Configuration Guide 第2章找到：
+Description of Figure 2-1 follows
+
+
+对Java使用信息的获得，AMC是通过Java Usage Tracker(JUT)来做的。JUT也是一个commercial feature，它的主要作用是记录一台机器上Java的使用情况。这不仅包括标准的Java应用，比如你运行一下自己写的Hello Word或是通过JNI调用一次Java class，也包括RIA的运行。JUT可以指定将这些Java使用信息保存在本地，也可以通过UDP发送到远端。AMC Agent就是设置JUT将终端机器上的Java使用信息发送给远端的AMC Server的。AMC Server则负责收集并存储JUT发来的信息，而后提供出Web UI允许用户通过各种图表的形式查看这些Java使用信息。需要提到的是，对于无法安装Agent的平台，如Linux，用户通过手动配置JUT也可以将这些平台上Java使用信息发送给AMC Server。JUT的具体介绍和使用，可以查看Java SE Usage Tracker Overview。
+
+为管理和控制组织内部RIA的使用，AMC使用的是Deployment Rule Set（DRS）技术。正如它的名字所表述的，DRS是一个规则集，它的规则可以定义一个Rich Internet Application是否允许被运行，或在哪一个JRE的更新后可以运行（关于DRS详细使用和定义可以参看Deployment Rule Set）。这个功能对于组织内已有的RIA使用非常有用。举个例子，之前所在公司有一个Applet是用来生成产品文件修改列表的，每次做产品的补丁都要使用这个Applet。而这个Applet只有公司内的self signed certificate，所以每次JRE升级之后，开发人员都得修改配置指定信任这个Applet，很是麻烦。如果使用DRS定义好这个Applet可以直接运行，那就不会有这个问题了。从AMC 2.4开始， AMC 的Web UI直接提供了功能，使用户可以方便定义DRS。在此之前，DRS的定义是通过一个AMC提供的Web Start Application来实现的。DRS定义好之后，管理人员还可以通过AMC Web UI指定将它分发给那些终端。请注意，AMC最终是通过Agent将DRS分发到终端机器上的，也就是说没有安装Agent或是无法安装Agent的终端机器无法通过AMC来分发DRS。当然，用户可以在AMC的Web UI导出DRS，手动部署到需要的终端机器上。提到DRS定义，还需要再联系一下上文提到JUT。AMC收集的JUT记录是包含各终端机器上运行的RIA信息的。在展示这些RIA运行记录的Web UI上，用户现在可以直接选择具体的应用，进行规则定义。这使得DRS的定义是在拥有足够多的RIA信息基础上进行的，不仅方便，更可以做到有的放矢，有效管理组织内的RIA使用情况，提高安全性。
+
+在指定终端机上安装或卸载定制好的JRE安装配置是AMC 2.4提供的另一个非常重要的新功能。在此之前，AMC只提供UI给用户创建并修改JRE安装配置，各个终端用户需要自己下载并安装这些配置。现在，AMC用户可以通过Web UI指定将某一JRE安装配置安装到那些终端上或是在那些终端上卸载已有的JRE，后续各终端上的Agent会自动检查是否需要安装或卸载JRE了。这里提到的JRE安装和卸载是通过Java SE Advanced的Enterprise MSI installer实现的，这也是一个commercial feature ：）。 值得强调的是AMC新版本往往是和Java Critical Patch Updates(CPU)一起发布的，例如AMC 2.4 就是和CPU16_03 一起发布的。通过AMC2.4的JRE安装卸载功能，一个组织就可以将内部终端机器上的JRE方便迅速的升级到最新的CPU16_03了，有效避免了安全漏洞的威胁。
+
+以上是我的一个对AMC的简单总结和介绍，如有错误或是问题，欢迎指正或留言，谢谢！
+
+参考资料：
+AMC 2.4 User Guide
+AMC 2.4 Installation and Configuration Guide
+Deployment Rule Set
+Java SE Usage Tracker Overview
